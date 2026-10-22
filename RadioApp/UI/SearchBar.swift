@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SearchBar: View {
     @Binding var text: String
+    var isFocused: FocusState<Bool>.Binding
 
     var body: some View {
         HStack {
@@ -16,6 +17,9 @@ struct SearchBar: View {
             TextField("Search stations…", text: $text)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
+                .focused(isFocused)
+                .submitLabel(.search)
+                .onSubmit { isFocused.wrappedValue = false }
             if !text.isEmpty {
                 Button {
                     text = ""

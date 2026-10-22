@@ -18,14 +18,15 @@ struct RadioScreen: View {
                     text: Binding(
                         get: { viewModel.state.searchQuery },
                         set: { viewModel.searchStations($0) }
-                    )
+                    ),
+                    isFocused: $searchFocused
                 )
 
                 GenreFilter(
                     genres: viewModel.getGenres(),
                     selected: viewModel.state.selectedGenre
                 ) { genre in
-                    searchFocused = false
+                    releaseFocus()
                     viewModel.filterByGenre(genre)
                 }
 
@@ -36,8 +37,12 @@ struct RadioScreen: View {
                         stations: viewModel.state.filteredStations,
                         selectedStation: viewModel.state.currentStation,
                         isPlaying: { viewModel.state.currentStation?.id == $0.id && viewModel.state.isPlaying },
-                        onTap: { viewModel.playStation($0) },
+                        onTap: { station in
+                            releaseFocus()
+                            viewModel.playStation(station)
+                        },
                         onPlayPause: { station in
+                            releaseFocus()
                             if viewModel.state.currentStation?.id == station.id {
                                 viewModel.togglePlayPause()
                             } else {
@@ -47,11 +52,19 @@ struct RadioScreen: View {
                     )
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            // Tap anywhere on the background releases focus. Using
+            // simultaneousGesture so taps on buttons / rows still fire.
+            .simultaneousGesture(
+                TapGesture().onEnded { releaseFocus() }
+            )
             .navigationTitle("📻 Radio Station")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        releaseFocus()
                         if let current = viewModel.state.currentStation {
                             viewModel.toggleFavorite(current)
                         }
@@ -61,7 +74,10 @@ struct RadioScreen: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { /* settings */ } label: {
+                    Button {
+                        releaseFocus()
+                        /* settings */
+                    } label: {
                         Image(systemName: "gearshape")
                     }
                 }
@@ -73,12 +89,28 @@ struct RadioScreen: View {
                         isPlaying: viewModel.state.isPlaying,
                         isLoading: viewModel.state.isLoading,
                         error: viewModel.state.error,
-                        onPlayPause: { viewModel.togglePlayPause() },
-                        onStop: { viewModel.stop() }
+                        onPlayPause: {
+                            releaseFocus()
+                            viewModel.togglePlayPause()
+                        },
+                        onStop: {
+                            releaseFocus()
+                            viewModel.stop()
+                        }
                     )
                 }
             }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            // Also clear focus when the user starts scrolling.
+            .scrollDismissesKeyboard(.immediately)
         }
+    }
+
+    private func releaseFocus() {
+        searchFocused = false
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil, from: nil, for: nil
+        )
     }
 }
