@@ -8,10 +8,13 @@
 import SwiftUI
 
 @main
-struct RadioAppApp: App {
+struct RadioApp: App {
+    @StateObject private var viewModel = RadioViewModel(player: RadioPlayer())
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RadioScreen()
+                .environmentObject(viewModel)
         }
     }
 }
