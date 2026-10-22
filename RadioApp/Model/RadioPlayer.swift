@@ -9,7 +9,6 @@ import AVFoundation
 import MediaPlayer
 import Combine
 
-@MainActor
 final class RadioPlayer: ObservableObject {
 
     @Published private(set) var currentStation: RadioStation?
@@ -147,7 +146,7 @@ final class RadioPlayer: ObservableObject {
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
             return
         }
-        var info: [String: Any] = [
+        let info: [String: Any] = [
             MPMediaItemPropertyTitle: station.name,
             MPMediaItemPropertyArtist: station.description ?? station.genre,
             MPMediaItemPropertyAlbumTitle: station.country,

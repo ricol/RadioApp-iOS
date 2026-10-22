@@ -8,7 +8,6 @@
 import Foundation
 import Combine
 
-@MainActor
 final class RadioViewModel: ObservableObject {
 
     @Published private(set) var state = RadioState()
